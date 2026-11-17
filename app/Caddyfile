@@ -1,0 +1,26 @@
+{
+	admin off
+	persist_config off
+	auto_https off
+}
+
+:{$PORT:8080} {
+	# The API, its health ping (/api/system_db) and the Socket.IO endpoint go to the server.
+	@server path /api /api/* /socket /socket/*
+	handle @server {
+		reverse_proxy 127.0.0.1:3000
+	}
+
+	# Everything else is the webapp (single-page app).
+	handle {
+		root * /srv/webapp
+		try_files {path} /index.html
+		file_server
+	}
+
+	encode gzip
+	log {
+		output stdout
+		level WARN
+	}
+}
